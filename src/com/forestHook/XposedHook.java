@@ -1,5 +1,7 @@
 package com.forestHook;
 
+import java.util.Map;
+
 import android.app.Activity;
 import android.util.Log;
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -18,6 +20,7 @@ public class XposedHook implements IXposedHookLoadPackage {
         Log.i(TAG, lpparam.packageName);
         if ("com.eg.android.AlipayGphone".equals(lpparam.packageName)) {
             hookSecurity(lpparam);
+            hookH5(lpparam);
             hookForest(lpparam);
         }
     }
@@ -82,5 +85,23 @@ public class XposedHook implements IXposedHookLoadPackage {
         } catch (Throwable e) {
             Log.i(TAG, "hookSecurity err:" + Log.getStackTraceString(e));
         }
+    }
+    
+    //检测版本，由于直接调用，并未加载H5页面，H5Page的变量处理起来比较麻烦，所以采用直接hook的办法
+    private void hookH5(XC_LoadPackage.LoadPackageParam lpparam) {
+    	try {
+    		Class<?> loadClass = lpparam.classLoader.loadClass("com.alipay.mobile.nebulabiz.rpc.H5AppRpcUpdate");
+    		Class<?> h5PageClazz = lpparam.classLoader.loadClass("com.alipay.mobile.h5container.api.H5Page");
+    		XposedHelpers.findAndHookMethod(loadClass, "matchVersion", h5PageClazz, Map.class, String.class, new XC_MethodHook() {
+                @Override
+                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                    super.afterHookedMethod(param);
+                    param.setResult(false);
+                }
+            });
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+    	
     }
 }
