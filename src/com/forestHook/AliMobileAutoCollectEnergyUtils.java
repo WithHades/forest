@@ -11,9 +11,6 @@ import org.json.JSONObject;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-/**
- * @author congyang.guo
- */
 public class AliMobileAutoCollectEnergyUtils {
     public static Object curH5Fragment;
     public static Activity h5Activity;
@@ -107,10 +104,10 @@ public class AliMobileAutoCollectEnergyUtils {
                     boolean optBoolean = jsonObject.optBoolean("canCollectEnergy");
                     boolean optBooleans = jsonObject.optBoolean("canHelpCollect");
                     String userId = jsonObject.optString("userId");
-                    XposedBridge.log("Find userId：" + userId + (optBoolean ? "  canCollectEnergy" : "") + (optBooleans ? "  canHelpCollect" : ""));
                     if (optBoolean || optBooleans) {
                         if (!friendsRankUseridList.contains(userId)) {
                             friendsRankUseridList.add(userId);
+                            XposedBridge.log("Find userId：" + userId + (optBoolean ? "  canCollectEnergy" : "") + (optBooleans ? "  canHelpCollect" : ""));
                         }
                     }
                 }
@@ -136,12 +133,12 @@ public class AliMobileAutoCollectEnergyUtils {
             json.put("startPoint", "" + (pageCount * 20 + 1));
             pageCount++;
             jsonArray.put(json);
-            XposedBridge.log("FriendRankList_send:" + jsonArray.toString());
+            //XposedBridge.log("FriendRankList_send:" + jsonArray.toString());
             Object resp = rpcMethod.invoke(null, "alipay.antmember.forest.h5.queryEnergyRanking", jsonArray.toString(), "",
                     true, null, null, false, curH5PageImpl, 0, "", false, -1);
             Method method = resp.getClass().getMethod("getResponse");
             response = (String) method.invoke(resp, new Object[]{});
-            XposedBridge.log("FriendRankList_recv:" + response);
+            //XposedBridge.log("FriendRankList_recv:" + response);
         } catch (Exception e) {
             Log.i(TAG, "rpcCall_FriendRankList err: " + Log.getStackTraceString(e));
             XposedBridge.log("rpcCall_FriendRankList_err: " + Log.getStackTraceString(e));
@@ -164,12 +161,12 @@ public class AliMobileAutoCollectEnergyUtils {
             if(userId != "1") json.put("userId", userId);
             json.put("version", "20180917");
             jsonArray.put(json);
-            XposedBridge.log("rpcCall_CanCollectEnergy_send:" + jsonArray.toString());
+            //XposedBridge.log("rpcCall_CanCollectEnergy_send:" + jsonArray.toString());
             Object resp = rpcMethod.invoke(null, "alipay.antmember.forest.h5.queryNextAction", jsonArray.toString(),
                     "", true, null, null, false, curH5PageImpl, 0, "", false, -1);
             Method method = resp.getClass().getMethod("getResponse");
             response = (String) method.invoke(resp, new Object[]{});
-            XposedBridge.log("rpcCall_CanCollectEnergy_recv:" + response);
+            //XposedBridge.log("rpcCall_CanCollectEnergy_recv:" + response);
         } catch (Exception e) {
             Log.i(TAG, "rpcCall_CanCollectEnergy err: " + Log.getStackTraceString(e));
             XposedBridge.log("rpcCall_CanCollectEnergy_err:" + Log.getStackTraceString(e));
@@ -193,12 +190,12 @@ public class AliMobileAutoCollectEnergyUtils {
             json.put("bubbleIds", bubbleAry);
             json.put("userId", userId);
             jsonArray.put(json);
-            XposedBridge.log("collectEnergy_send:" + jsonArray.toString());
+            //XposedBridge.log("collectEnergy_send:" + jsonArray.toString());
             Object resp = rpcMethod.invoke(null, "alipay.antmember.forest.h5.collectEnergy", jsonArray.toString()
                     , "", true, null, null, false, curH5PageImpl, 0, "", false, -1);
             Method method = resp.getClass().getMethod("getResponse");
             String response = (String) method.invoke(resp, new Object[]{});
-            XposedBridge.log("collectEnergy_recv:" + response);
+            //XposedBridge.log("collectEnergy_recv:" + response);
             AliMobileAutoCollectEnergyUtils.parseCollectEnergyResponse(response);
         } catch (Exception e) {
             Log.i(TAG, "rpcCall_CanCollectEnergy err: " + Log.getStackTraceString(e));
@@ -222,13 +219,13 @@ public class AliMobileAutoCollectEnergyUtils {
             json.put("bubbleIds", bubbleAry);
             json.put("targetUserId", userId);
             jsonArray.put(json);
-            XposedBridge.log("forFriendCollectEnergy_send:" + jsonArray.toString());
+            //XposedBridge.log("forFriendCollectEnergy_send:" + jsonArray.toString());
             Object resp = rpcMethod.invoke(null, "alipay.antmember.forest.h5.forFriendCollectEnergy",
                     jsonArray.toString(), "", Boolean.TRUE, null, null, Boolean.FALSE, curH5PageImpl, 0, "",
                     Boolean.FALSE, -1);
             Method method = resp.getClass().getMethod("getResponse");
             String response = (String) method.invoke(resp, new Object[]{});
-            XposedBridge.log("forFriendCollectEnergy_recv:" + response);
+            //XposedBridge.log("forFriendCollectEnergy_recv:" + response);
         } catch (Exception e) {
             Log.i(TAG, "forFriendCollectEnergy err: " + e.getMessage());
             XposedBridge.log("forFriendCollectEnergy_err: " + e.getMessage());
