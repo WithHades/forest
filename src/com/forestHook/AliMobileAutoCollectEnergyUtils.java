@@ -18,6 +18,7 @@ public class AliMobileAutoCollectEnergyUtils {
     private static Object curH5PageImpl;
     private static ArrayList<String> friendsRankUseridList = new ArrayList<String>();
     private static Integer totalEnergy = 0;
+    private static Integer totalForfriendEnergy = 0;
     private static Integer pageCount = 0;
     private static Method rpcMethod = null;
 
@@ -47,6 +48,7 @@ public class AliMobileAutoCollectEnergyUtils {
             friendsRankUseridList.clear();
             pageCount = 0;
             totalEnergy = 0;
+            totalForfriendEnergy = 0;
         }
         
     }
@@ -225,6 +227,7 @@ public class AliMobileAutoCollectEnergyUtils {
                     Boolean.FALSE, -1);
             Method method = resp.getClass().getMethod("getResponse");
             String response = (String) method.invoke(resp, new Object[]{});
+            AliMobileAutoCollectEnergyUtils.parseForfriendEnergyResponse(response);
             //XposedBridge.log("forFriendCollectEnergy_recv:" + response);
         } catch (Exception e) {
             Log.i(TAG, "forFriendCollectEnergy err: " + e.getMessage());
@@ -271,4 +274,18 @@ public class AliMobileAutoCollectEnergyUtils {
         return false;
     }
     
+    public static boolean parseForfriendEnergyResponse(String response) {
+    	try {
+    		JSONObject jsonObject = new JSONObject(response);
+    		JSONArray jsonArray = jsonObject.optJSONArray("bubbles");
+    		for (int i = 0; i < jsonArray.length(); i++) {
+    			totalForfriendEnergy += jsonArray.getJSONObject(i).optInt("collectedEnergy");
+    		}
+    		if ("SUCCESS".equals(jsonObject.optString("resultCode"))) {
+    			return true;
+    		}
+    	} catch (Exception e) {
+    	}
+    	return false;
+	}
 }
