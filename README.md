@@ -1,23 +1,3 @@
-
-
-### ==蚂蚁森林助手==
-1. 自动收取自己与好友的能量
-2. 自动收取好友即将消失的能量
-3. 静默操作，无需打开蚂蚁森林页面
-4. 定时启动，每隔10分钟收取一次
-5. 软件需要Xposed框架支持，在VirtualXposed里面可以正常使用
-6. [进入下载页面](https://github.com/WithHades/forestHook/releases)
-​
-##### 感谢
-​
-1.参考尼古拉四的思路 [Android支付宝蚂蚁森林能量自动收取插件开发原理解析](https://www.52pojie.cn/thread-794312-1-1.html)
- 2.参考Joysing的思路[支付宝蚂蚁森林自动收能量 & 监控能量生成](https://github.com/Joysing/AlipayAutoGetForest)
- 
-[8:8]行数：12 长度：376
-更新内容
-小书匠编辑器使用手册
-小书匠语法使用手册
-HTML
 <div class="line_item line_item_display xiaoshujiang_element" data-line="0"></div>
 <div class="xiaoshujiang_element xsj_anchor">
   <a name="e89a82e89a81e6a3aee69e97e58aa9e6898b_1" class="blank_anchor_name"></a>
