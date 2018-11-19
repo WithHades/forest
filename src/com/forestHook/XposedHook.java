@@ -33,7 +33,7 @@ public class XposedHook implements IXposedHookLoadPackage {
         			AliMobileAutoCollectEnergyUtils.getRpcCallMethod(lpparam.classLoader);
         			AliMobileAutoCollectEnergyUtils.autoGetCanCollectUserIdList(lpparam.classLoader);
         			try {
-						sleep(5*60*1000);
+        				sleep(5*60*1000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -98,7 +98,7 @@ public class XposedHook implements IXposedHookLoadPackage {
                     super.afterHookedMethod(param);
                     param.setResult(false);
                 }
-            });
+    		});
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}

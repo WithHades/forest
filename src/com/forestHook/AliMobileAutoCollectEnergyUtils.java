@@ -30,7 +30,6 @@ public class AliMobileAutoCollectEnergyUtils {
      * @param response json
      */
     public static void autoGetCanCollectUserIdList(final ClassLoader loader) {
-    	friendsRankUseridList.add("1");//这个是自己的
         //开始解析好友信息，循环把所有有能量的好友信息都解析完
     	boolean isSucc = true;
     	String response;
@@ -39,19 +38,23 @@ public class AliMobileAutoCollectEnergyUtils {
     		isSucc = parseFrienRankPageDataResponse(response);
     	}
         if (friendsRankUseridList.size() > 0) {
-        		XposedBridge.log("可操作好友共" + String.valueOf(friendsRankUseridList.size() - 1) + "个");
-                for (String userId : friendsRankUseridList) {
-                    response = rpcCall_CanCollectEnergy(loader, userId);
-                    autoGetCanCollectBubbleIdList(loader,response);
-                }
-            finishWork();   
-            friendsRankUseridList.clear();
+        	XposedBridge.log("可操作好友共" + String.valueOf(friendsRankUseridList.size()) + "个");
+        	for (String userId : friendsRankUseridList) {
+        		response = rpcCall_CanCollectEnergy(loader, userId);
+        		autoGetCanCollectBubbleIdList(loader,response);
+        	}
+        	if(totalEnergy > 0) XposedBridge.log("一共收取了" + totalEnergy + "g能量");
+        	if(totalForfriendEnergy > 0) XposedBridge.log("一共帮好友收取了" + totalForfriendEnergy + "g能量");
+        	friendsRankUseridList.clear();
             pageCount = 0;
             totalEnergy = 0;
             totalForfriendEnergy = 0;
         }
-        
-    }
+        else{
+        	XposedBridge.log("暂无可操作好友");
+        }
+        XposedBridge.log("工作完毕");
+	}
 
     /**
      * 自动获取能收取的能量ID
@@ -79,14 +82,6 @@ public class AliMobileAutoCollectEnergyUtils {
             } catch (Exception e) {
             }
         }
-    }
-    
-    /**
-     * 结束工作
-     */
-    private static void finishWork() {
-        // 打印收取了多少能量
-    	XposedBridge.log("一共收取了" + totalEnergy + "g能量");
     }
 
     /**
@@ -160,7 +155,7 @@ public class AliMobileAutoCollectEnergyUtils {
         try {
             JSONArray jsonArray = new JSONArray();
             JSONObject json = new JSONObject();
-            if(userId != "1") json.put("userId", userId);
+            json.put("userId", userId);
             json.put("version", "20180917");
             jsonArray.put(json);
             //XposedBridge.log("rpcCall_CanCollectEnergy_send:" + jsonArray.toString());
@@ -214,7 +209,7 @@ public class AliMobileAutoCollectEnergyUtils {
      */
     public static void rpcCall_forFriendCollectEnergy(ClassLoader loader, String userId, Integer bubbleId) {
         try {
-            JSONArray jsonArray = new JSONArray();
+        	JSONArray jsonArray = new JSONArray();
             JSONArray bubbleAry = new JSONArray();
             bubbleAry.put(bubbleId);
             JSONObject json = new JSONObject();
@@ -260,7 +255,7 @@ public class AliMobileAutoCollectEnergyUtils {
     public static boolean parseCollectEnergyResponse(String response) {
         if (!TextUtils.isEmpty(response) && response.contains("failedBubbleIds")) {
             try {
-                JSONObject jsonObject = new JSONObject(response);
+            	JSONObject jsonObject = new JSONObject(response);
                 JSONArray jsonArray = jsonObject.optJSONArray("bubbles");
                 for (int i = 0; i < jsonArray.length(); i++) {
                     totalEnergy += jsonArray.getJSONObject(i).optInt("collectedEnergy");
