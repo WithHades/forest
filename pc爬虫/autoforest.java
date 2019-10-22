@@ -19,15 +19,15 @@ public class autoforest {
     //the user cookie
     private static String cookie;
 	
-    //需要自己抓数据填写
-    private static String x_mgs_productversion = "";
+    //the version of product
+    private static String x_mgs_productversion = "8f5";
 	
-    //需要自己抓数据填写
-    private static String Did = "";
+    //Did is a deviceId
+    private static String Did = "WSv";
 
     private static ArrayList<String> friendsRankUseridList = new ArrayList<String>();
 
-    private static String name;
+    private static String name = "";
 
     private static int totalEnergy = 0;
 
@@ -37,18 +37,23 @@ public class autoforest {
 
     private static int allTotalForFriendEnergy = 0;
 
-    private final static Signso signso = new Signso();
+    private static String blackList = "";
 
-    private static personal[] personals = new personal[1];
+    private final static TestSignso signso = new TestSignso();
+
+    private static personal[] personals = new personal[2];
 
     private static SimpleDateFormat dateFormat= new SimpleDateFormat("MM-dd hh:mm:ss");;
 
     public static void main(String[] args) throws IOException {
+
         signso.initSign();
-        //cookie以及miniwua均需要自己抓数据填写
         personal p1 = new personal("","", "");
+        personal p2 = new personal("","", "");
         personals[0] = p1;
+        personals[1] = p2;
         work();
+
 	}
     private static void work(){
         new Thread(){
@@ -104,6 +109,9 @@ public class autoforest {
 
         }
 
+        //获取自己的能量信息并收取
+        response = canCollectEnergy(null);
+        autoGetCanCollectBubbleIdList(response);
 
         if (friendsRankUseridList.size() > 0) {
 
@@ -141,7 +149,7 @@ public class autoforest {
     private static String getFriendRankList(int pageCount) {
 
         try {
-        	
+
             JSONArray jsonArray = new JSONArray();
             JSONObject json = new JSONObject();
 			json.put("av", "5");
@@ -166,8 +174,11 @@ public class autoforest {
     private static boolean parseFriendRankPageDataResponse(String response) {
 
         try {
-            if(response == "") return false;
-            JSONArray optJSONArray = new JSONObject(response).optJSONArray("friendRanking");
+            if(response.equals("")) return false;
+
+            JSONObject jsonObjects = new JSONObject(response);
+
+            JSONArray optJSONArray = jsonObjects.optJSONArray("friendRanking");
 
             if (optJSONArray == null || optJSONArray.length() == 0) {
 
@@ -185,6 +196,9 @@ public class autoforest {
 
                     String userId = jsonObject.optString("userId");
 
+                    //屏蔽偷能量名单
+                    if(blackList.contains(userId)) optBoolean = false;
+
                     if (optBoolean || optBooleans) {
 
                         if (!friendsRankUseridList.contains(userId)) {
@@ -197,6 +211,7 @@ public class autoforest {
                     }
                 }
             }
+            if(!jsonObjects.optBoolean("hasMore")) return false;
 
         } catch (Exception e) {
             println("parseFriendRankPageDataResponse error:" + e.getMessage());
@@ -213,7 +228,7 @@ public class autoforest {
             JSONArray jsonArray = new JSONArray();
             JSONObject json = new JSONObject();
             //json.put("canRobFlags", "T,T,T");
-            json.put("userId", userId);
+            if(userId != null) json.put("userId", userId);
             json.put("version", "20181220");
             jsonArray.put(json);
             
@@ -235,6 +250,11 @@ public class autoforest {
             try {
 
                 JSONObject jsonObject = new JSONObject(response);
+
+                JSONArray usingUserProps = jsonObject.optJSONArray("usingUserProps");
+
+                //说明有保护罩
+                if(usingUserProps.length() != 0 && jsonObject.optString("nextAction").contains("Friend")) return;
 
                 JSONArray jsonArray = jsonObject.optJSONArray("bubbles");
 
@@ -306,8 +326,8 @@ public class autoforest {
     //帮好友收能量
     private static String forFriendCollectEnergy(String userId, Long bubbleId) {
         try {
-        	
-        	JSONArray jsonArray = new JSONArray();
+
+            JSONArray jsonArray = new JSONArray();
             JSONArray bubbleAry = new JSONArray();
             bubbleAry.put(bubbleId);
             JSONObject json = new JSONObject();
@@ -329,8 +349,9 @@ public class autoforest {
     public static boolean parseForfriendEnergyResponse(String response) {
 
         try {
-
+            if ((response == null)) return false;
             JSONObject jsonObject = new JSONObject(response);
+
             if (!"SUCCESS".equals(jsonObject.optString("resultCode"))) return false;
 
             JSONArray jsonArray = jsonObject.optJSONArray("bubbles");
@@ -401,13 +422,16 @@ public class autoforest {
             	response.append(line);
             }
 
-            //请求失败则会在协议头的Tips中找到错误信息
+            if(response.toString().equals("")){
+                Map<String, List<String>> Properties = conn.getHeaderFields();
+                println("http error:" + URLDecoder.decode(Properties.get("Tips").toString()));
+            }
+
             /*
             Map<String, List<String>> Properties = conn.getHeaderFields();
 			for (Map.Entry<String, List<String>> entry : Properties.entrySet())
 				System.out.println(URLDecoder.decode(entry.toString()));
             */
-
             buffer.close();
             conn.disconnect();
 		
@@ -434,9 +458,10 @@ public class autoforest {
     	signData.append("&Ts=");
     	signData.append(ts);
 
-    	String sign = signso.doCommandNative(signData.toString());
-   	sign = sign.replaceAll("StringObject\\{value=","");
-   	sign = sign.replaceAll("}","");
+    	String sign = signso.test(signData.toString());
+
+        sign = sign.replaceAll("StringObject\\{value=","");
+        sign = sign.replaceAll("}","");
 
     	return sign;
     
@@ -447,9 +472,9 @@ public class autoforest {
     	return c10to64(ts);
     }
     
-    //特殊的十进制到64进制
-    private static final String c10to64(long j) {
-        char[] a = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '+', '/'};
+	//特殊的十进制到64进制
+	private static final String c10to64(long j) {
+		char[] a = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '+', '/'};
         int pow = (int) Math.pow(2.0d, 6.0d);
         char[] cArr = new char[pow];
         int i = pow;
@@ -461,7 +486,6 @@ public class autoforest {
         return new String(cArr, i, pow - i);
     }
 
-    //输出信息
     private static void println(String msg){
         Date date = new Date();
         String time = dateFormat.format(date);
